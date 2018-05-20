@@ -48,15 +48,15 @@ function create(){
 	for (( i = 0; i < numdirs; i++ )); do
 		mkdir "$dirname/site$i"
 		for (( j = 0; j < numfiles; j++ )); do
-			website="$dirname/site$i/page${i}_$RANDOM.html"
-			arrsites+=("$website")
+			website="site$i/page${i}_$RANDOM.html"			
 			#Unique name for each individual website
-			while [[ -e "$website" ]]; do
+			while [[ -e "$dirname/$website" ]]; do
 				echo "File Exists. Generating another one with different number."
-				website="$dirname/site$i/page${i}_$RANDOM"
+				website="site$i/page${i}_$RANDOM"
 			done
+			arrsites+=("$website")
 			#Create the website
-			touch "$website"
+			touch "$dirname/$website"
 		done
 	done
 
@@ -78,33 +78,33 @@ function create(){
 		echo "#  Creating page ${arrsites[x]} with $m lines starting at line $k ..."
 
 		#Put the header of html
-		echo -e "<!DOCTYPE html>\n<html>\n\t<body>" > ${arrsites[x]}
+		echo -e "<!DOCTYPE html>\n<html>\n\t<body>" > "$dirname${arrsites[x]}"
 
 		#numintlinks
 		for (( l = 0; l < numintlinks; l++ )); do
-			sed -n "$k","$(( f + k ))"p "$filename" >> ${arrsites[x]}
+			sed -n "$k","$(( f + k ))"p "$filename" >> "$dirname${arrsites[x]}"
 			y=$(( i * numfiles + $RANDOM % numfiles ))
-			echo "#   Adding internal link to ${arrsites[y]}"
-			echo -e "<a href=\"${arrsites[y]}\">${arrsites[y]}_text</a>" >> ${arrsites[x]}
+			echo "#   Adding internal link to /${arrsites[y]}"
+			echo -e "<a href=\"/${arrsites[y]}\">/${arrsites[y]}_text</a>" >> "$dirname${arrsites[x]}"
 			checksites[y]=${arrsites[y]}
 			k=$(( f + k + 1))
 		done
 
 		#numextlinks
 		for (( l = 0; l < numextlinks; l++ )); do
-			sed -n "$k","$(( f + k ))"p "$filename" >> ${arrsites[x]}
+			sed -n "$k","$(( f + k ))"p "$filename" >> "$dirname${arrsites[x]}"
 			w=$(( $RANDOM % numdirs ))
 			while [[ $w == $i ]]; do
 				w=$(($RANDOM % numdirs))
 			done
 			y=$(( w * numfiles + $RANDOM % numfiles ))
-			echo "#   Adding external link to ${arrsites[y]}"
-			echo -e "<a href=\"${arrsites[y]}\">${arrsites[y]}_text</a>" >> ${arrsites[x]}
+			echo "#   Adding external link to /${arrsites[y]}"
+			echo -e "<a href=\"/${arrsites[y]}\">/${arrsites[y]}_text</a>" >> "$dirname${arrsites[x]}"
 			checksites[y]=${arrsites[y]}
 			k=$(( f + k + 1))
 		done
 
-		echo -e "\n\t</body>\n</html>" >> ${arrsites[x]}
+		echo -e "\n\t</body>\n</html>" >> "$dirname${arrsites[x]}"
 		done
 	done
 
@@ -148,8 +148,8 @@ if ! [[ -f "$2" ]]; then
 fi
 
 #Check 3rd argument
-if ! [[ "$3" =~ $intreg ]] ; then
-	echo "${red}The third argument is not an integer!"
+if ! [[ "$3" =~ $intreg  && "$3" > "1" ]] ; then
+	echo "${red}The third argument is not an integer! (or bigger than 1)"
 	errflag=1
 fi
 

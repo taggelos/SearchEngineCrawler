@@ -10,8 +10,8 @@ void paramError(char * programName ,const char * reason){
 }
 
 void perror(char *message){
-    perror(message);
-    exit(EXIT_FAILURE);
+	perror(message);
+	exit(EXIT_FAILURE);
 }
 
 //Print Format when problem with command occurs
@@ -60,6 +60,27 @@ char** readFile(char* myFile, int& lines, int& fileChars){
 	}
 }
 
+//Read input file as a single string
+char* readFile(char* myFile){
+	FILE * file;
+	file = fopen (myFile, "r");
+	if (file == NULL){
+		cerr << "Error opening file" << endl;
+		exit(2);
+	}
+	else {
+		char* strFile;
+		fseek (file, 0, SEEK_END);
+		int length = (int) ftell (file);
+		fseek (file, 0, SEEK_SET);
+		strFile = new char[length + 1];
+		fread (strFile, sizeof(char), length, file);
+		strFile[length]='\0';
+		fclose (file);
+		return strFile;
+	}
+}
+
 //Read input File
 char** readPathFile(char* myFile, int &lines){
 	FILE * file;
@@ -105,10 +126,10 @@ int numRead(char* num){
 }
 
 //Check the arguments given by the user
-void inputCheck(int argc, char* argv[], char*& inputFile, int& servPort, int& cmdPort, int& threadsNum){
+void inputCheck(int argc, char* argv[], char*& rootDir, int& servPort, int& cmdPort, int& threadsNum){
 	if (argc== 9) {
 		if (!strcmp(argv[1],"-p") && !strcmp(argv[3],"-c") && !strcmp(argv[5],"-t") && !strcmp(argv[7],"-d")){
-			inputFile = argv[8];			
+			rootDir = argv[8];			
 			servPort = numRead(argv[2]);
 			cmdPort = numRead(argv[4]);
 			threadsNum = numRead(argv[6]);
@@ -119,7 +140,7 @@ void inputCheck(int argc, char* argv[], char*& inputFile, int& servPort, int& cm
 		else paramError(argv[0], "Invalid arguments");
 	}
 	else paramError(argv[0], "This is not an appropriate syntax");
-	cout << "Arguments taken : " << servPort << " " << cmdPort << " " << threadsNum << " " << inputFile << endl;
+	cout << "Arguments taken : " << servPort << " " << cmdPort << " " << threadsNum << " " << rootDir << endl;
 }
 
 //Free a 2D array knowing its size with lineNum

@@ -1,6 +1,6 @@
-CPP = g++ -Wall -Wextra -Wconversion -g -lm
+CPP = g++ -Wall -Wextra -Wconversion -g -pthread
 OUT = myhttpd
-OBJS = main.o fileUtil.o
+OBJS = main.o fileUtil.o jobQueue.o wordList.o
 
 $(OUT): $(OBJS)
 	$(CPP) $^ -o $@
@@ -15,7 +15,7 @@ run:
 	./$(OUT) -p 8080 -c 9090 -t 15 -d ../WebSiteCreator/empty/
 
 val: 
-	valgrind -v --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(OUT) -d $(DATA) 
+	valgrind -v --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(OUT) -p 8080 -c 9090 -t 15 -d ../WebSiteCreator/empty/
 
 clean:
 	rm -f $(OBJS) $(OUT)
