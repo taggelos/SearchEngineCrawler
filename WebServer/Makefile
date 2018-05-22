@@ -1,6 +1,6 @@
 CPP = g++ -Wall -Wextra -Wconversion -g -pthread
 OUT = myhttpd
-OBJS = main.o fileUtil.o jobQueue.o wordList.o
+OBJS = main.o fileUtil.o threadUtil.o jobQueue.o wordList.o
 
 $(OUT): $(OBJS)
 	$(CPP) $^ -o $@

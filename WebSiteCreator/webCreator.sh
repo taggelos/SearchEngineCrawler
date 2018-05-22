@@ -78,14 +78,14 @@ function create(){
 		echo "#  Creating page ${arrsites[x]} with $m lines starting at line $k ..."
 
 		#Put the header of html
-		echo -e "<!DOCTYPE html>\n<html>\n\t<body>" > "$dirname${arrsites[x]}"
+		echo -en "<!DOCTYPE html><html><body>" > "$dirname${arrsites[x]}"
 
 		#numintlinks
 		for (( l = 0; l < numintlinks; l++ )); do
 			sed -n "$k","$(( f + k ))"p "$filename" >> "$dirname${arrsites[x]}"
 			y=$(( i * numfiles + $RANDOM % numfiles ))
 			echo "#   Adding internal link to /${arrsites[y]}"
-			echo -e "<a href=\"/${arrsites[y]}\">/${arrsites[y]}_text</a>" >> "$dirname${arrsites[x]}"
+			echo -en "<a href=\"/${arrsites[y]}\">/${arrsites[y]}_text</a>" >> "$dirname${arrsites[x]}"
 			checksites[y]=${arrsites[y]}
 			k=$(( f + k + 1))
 		done
@@ -99,12 +99,13 @@ function create(){
 			done
 			y=$(( w * numfiles + $RANDOM % numfiles ))
 			echo "#   Adding external link to /${arrsites[y]}"
-			echo -e "<a href=\"/${arrsites[y]}\">/${arrsites[y]}_text</a>" >> "$dirname${arrsites[x]}"
+			echo -en "<a href=\"/${arrsites[y]}\">/${arrsites[y]}_text</a>" >> "$dirname${arrsites[x]}"
 			checksites[y]=${arrsites[y]}
 			k=$(( f + k + 1))
 		done
 
-		echo -e "\n\t</body>\n</html>" >> "$dirname${arrsites[x]}"
+		echo -en "</body></html>" >> "$dirname${arrsites[x]}"
+		sed -i 's/$/ <br>/' "$dirname${arrsites[x]}"
 		done
 	done
 
