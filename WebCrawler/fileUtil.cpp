@@ -88,6 +88,26 @@ char** readPathFile(char* myFile, int &lines){
 	}
 }
 
+//Read input file as a single string
+char* readFile(char* myFile){
+	FILE * file;
+	file = fopen (myFile, "r");
+	if (file == NULL){
+		cerr << "Error opening file" << endl;
+		exit(2);
+	}
+	else {
+		char* strFile;
+		fseek (file, 0, SEEK_END);
+		int length = (int) ftell (file);
+		fseek (file, 0, SEEK_SET);
+		strFile = new char[length + 1];
+		fread (strFile, sizeof(char), length, file);
+		strFile[length]='\0';
+		fclose (file);
+		return strFile;
+	}
+}
 
 //Check string if it is number
 bool numberCheck(char *str){
@@ -121,7 +141,7 @@ void inputCheck(int argc, char* argv[], char*& hostname, char*& saveDir, char*& 
 		else paramError(argv[0], "Invalid arguments");
 	}
 	else paramError(argv[0], "This is not an appropriate syntax");
-	cout << "Arguments taken : " << hostname << " " << servPort << " " << cmdPort << " " << threadsNum << saveDir << " " << startingUrl << " " << endl;
+	cout << "Arguments taken : " << hostname << " " << servPort << " " << cmdPort << " " << threadsNum  << " " << saveDir << " " << startingUrl << " " << endl;
 }
 
 //Free a 2D array knowing its size with lineNum

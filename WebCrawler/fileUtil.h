@@ -22,6 +22,7 @@ void perror(char *message);
 void commandError();
 char** readFile(char* myFile, int &lines, int& fileChars);
 char** readPathFile(char* myFile, int &lines);
+char* readFile(char* myFile);
 void inputCheck(int argc, char* argv[], char*& hostname, char*& saveDir, char*& startingUrl, int& servPort, int& cmdPort, int& threadsNum);
 int numRead(char* num);
 bool numberCheck(char *str);

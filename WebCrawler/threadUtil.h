@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <cstring>
 #include <ctype.h>
 //Sockets
 #include <sys/wait.h>
@@ -17,7 +16,7 @@
 #include <ctime>
 #include <sys/stat.h>
 
-#include "jobQueue.h"
+#include "siteQueue.h"
 #include "fileUtil.h"
 
 using namespace std;
@@ -36,12 +35,12 @@ struct Stats{
 
 void sigChldHandler(int sig);
 void socketWrite(int sock, char* resp, ssize_t respSize);
-int readLine(char* msg, int sock, char* line);
+int socketResponse(int sock, char* msg);
+int readLine(char* line, int sock);
 bool isFile(char *path);
 char* getParam(char* line);
-void childServer(int sock, Stats* st);
-void * threadConsumer(void * ptr);
+void childServer(char* site, Stats* st);
+void * threadConnect(void * ptr);
 void takeCmds(Stats* st,int cmdPort);
-void* threadServ(void* ptr);
 
 #endif

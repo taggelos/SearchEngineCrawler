@@ -1,49 +1,53 @@
 //Function Definitions
-#include "jobQueue.h"
+#include "siteQueue.h"
 
-JobQueue::Node::Node(int f){
+SiteQueue::Node::Node(char* s){
 	next=NULL;
-	fd=f;
+	site = new char[strlen(s)+1];
+	strcpy(site,s);
 }
 
-JobQueue::Node::~Node(){}
+SiteQueue::Node::~Node(){
+	delete[] site;
+}
 
-JobQueue::JobQueue(){
+SiteQueue::SiteQueue(){
 	//Initialise our first Node, head
 	head = NULL;
 	numNodes = 0;
 }
 
-void JobQueue::push(int fd){
+void SiteQueue::push(char* site){
 	if (head==NULL){
-		head = new Node(fd);
+		head = new Node(site);
 		numNodes++;
 		return;
 	}
 	//Temp will hold last node
 	Node* temp = head;
 	while (temp->next!=NULL) temp = temp->next;
-	Node * n = new Node(fd);
+	Node * n = new Node(site);
 	temp->next = n;
 	numNodes++;
 }
 
-int JobQueue::pop(){
-	if (numNodes==0) return -1;
+char* SiteQueue::pop(){
+	if (numNodes==0) return NULL;
 	Node* nhead = head->next;
-	int resfd = head->fd;
+	char* ressite = new char[strlen(head->site)+1];
+	strcpy(ressite,head->site);
 	delete head;
 	numNodes--;
 	head=nhead;
-	return resfd;
+	return ressite;
 }
 
-int JobQueue::countNodes(){
+int SiteQueue::countNodes(){
 	return numNodes;
 }
 
 //Destructor
-JobQueue::~JobQueue(){
+SiteQueue::~SiteQueue(){
 	Node* temp = NULL;
 	while(head!= NULL){
 		temp = head;

@@ -78,7 +78,7 @@ function create(){
 		echo "#  Creating page ${arrsites[x]} with $m lines starting at line $k ..."
 
 		#Put the header of html
-		echo -en "<!DOCTYPE html><html><body>" > "$dirname${arrsites[x]}"
+		echo -en "<!DOCTYPE html><html><body> " > "$dirname${arrsites[x]}"
 
 		#numintlinks
 		for (( l = 0; l < numintlinks; l++ )); do
@@ -103,9 +103,9 @@ function create(){
 			checksites[y]=${arrsites[y]}
 			k=$(( f + k + 1))
 		done
-
-		echo -en "</body></html>" >> "$dirname${arrsites[x]}"
-		sed -i 's/$/ <br>/' "$dirname${arrsites[x]}"
+		
+		sed -i 's/$/ <br> /' "$dirname${arrsites[x]}"
+		echo -en " </body></html>" >> "$dirname${arrsites[x]}"
 		done
 	done
 

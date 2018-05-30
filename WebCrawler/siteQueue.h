@@ -1,28 +1,29 @@
 // Header --> Functions Declarations
 #include <iostream>
+#include <cstring>
 using namespace std;
 
-#ifndef JOBQUEUE_H
-#define JOBQUEUE_H
+#ifndef SITEQUEUE_H
+#define SITEQUEUE_H
 
 //Our Queue
-class JobQueue {
+class SiteQueue {
 	struct Node {
 		//File descriptor for specific socket
-		int fd;
+		char* site;
 		Node* next;
-		Node(int fd);
+		Node(char* site);
 		~Node();
 	};
 	Node* head;
 	//Number of Nodes
 	int numNodes;
 public:
-	JobQueue();
-	void push(int fd);
-	int pop();
+	SiteQueue();
+	void push(char* site);
+	char* pop();
 	int countNodes();
-	~JobQueue();	
+	~SiteQueue();	
 };
 
 #endif

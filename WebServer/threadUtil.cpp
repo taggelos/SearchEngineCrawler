@@ -6,12 +6,21 @@ pthread_mutex_t mtx2;
 pthread_cond_t cond_nonempty;
 JobQueue jobQ;
 char* rootDir = NULL;
+volatile bool finished;
 
 //Wait for all dead child processes
 void sigChldHandler(int sig){
 	while (waitpid(-1, NULL, WNOHANG) > 0);
 	cout << "Signal handler "<< sig <<endl;
 }
+
+//Finish loops
+void sigChldFinisher(int sig){
+	cout << "We will set finished true"<< sig <<endl;
+	finished = true;
+	cout << "We finish now with "<< sig <<endl;
+}
+
 
 //Safe way to write in our socket
 void socketWrite(int sock, char* resp, ssize_t respSize){
@@ -58,6 +67,28 @@ int readLine(char* msg, int sock, char* line){
 	return i;
 }
 
+//ReadLine Character by Character
+int readLine(char* line, int sock){
+	int i=0;
+	ssize_t n;
+	while (i < LINESIZE){
+		//Read Character by Character
+		if((n = read(sock, &line, 1)) < 0){
+			if (errno == EINTR) continue;
+			return -1;
+		}else if (n == 1) if (line[i++] == '\n') break;
+	}
+	//If we exited because of size
+	if(i == LINESIZE){
+		cerr << "Line too large: "<< LINESIZE <<endl;
+		return -1;
+	}
+	//Use '\0' as last character to designate our string
+	line[i] = '\0';
+	return i;
+}
+
+
 bool isFile(char *path){
 	struct stat path_stat;
 	stat(path, &path_stat);
@@ -83,8 +114,25 @@ void childServer(int sock, Stats* st){
 		return;
 	}
 	cout << "curr line-> "<< line<< endl;
+
+	//Calculate date and time in gmt in specific pattern
+	char currDate[30];
+	time_t t = time(NULL);
+	struct tm* tmp = gmtime(&t);
+	if (tmp == NULL) {
+		perror("gmtime error");
+		exit(EXIT_FAILURE);
+	}
+	if (strftime(currDate, sizeof(currDate), "%a, %d %b %Y %T %Z" , tmp) == 0) { 
+		fprintf(stderr, "strftime returned 0");
+		exit(EXIT_FAILURE); 
+	}
+
 	if (strncmp(line,"GET",3)) {
-		char resp[] = "HTTP/1.1 400 Not Right\nDate: Mon, 27 May 2018 12:28:53 GMT\nServer: myhttpd/1.0.0 (Ubuntu64)\nContent-Length: 49\nContent-Type: text/html\nConnection: Closed\n\n<html>Sorry dude, couldn't find this file.</html>";
+		char resp1[] = "HTTP/1.1 400 Not Right\nDate: ";
+		char resp2[] = "\nServer: myhttpd/1.0.0 (Ubuntu64)\nContent-Length: 49\nContent-Type: text/html\nConnection: Closed\n\n<html>Sorry dude, couldn't find this file.</html>";
+		char resp[strlen(resp1) + strlen(currDate) + strlen(resp2)];
+		sprintf(resp, "%s%s%s", resp1, currDate, resp2);
 		socketWrite(sock, resp, strlen(resp));
 		return;
 	}
@@ -101,26 +149,15 @@ void childServer(int sock, Stats* st){
 	strcpy(pathFile,rootDir);
 	strcat(pathFile,pageName);
 
-	char currDate[30];
-	const char* fmt = "%a, %d %b %Y %T %Z";
-	time_t t = time(NULL);
-	struct tm* tmp = gmtime(&t);
-	if (tmp == NULL) {
-		perror("gmtime error");
-		exit(EXIT_FAILURE);
-	}
-
-	if (strftime(currDate, sizeof(currDate), fmt, tmp) == 0) { 
-		fprintf(stderr, "strftime returned 0");
-		exit(EXIT_FAILURE); 
-	}
-
 	//Check if file exists
 	if(access(pathFile, F_OK) != -1){
 		if(access(pathFile, R_OK) == 0){
 			char* strFile = readFile(pathFile);
 			if (!isFile(strFile)) {
-				char resp[] = "HTTP/1.1 404 Not Found\nDate: Mon, 27 May 2018 12:28:53 GMT\nServer: myhttpd/1.0.0 (Ubuntu64)\nContent-Length: 49\nContent-Type: text/html\nConnection: Closed\n\n<html>Sorry dude, couldn't find this file.</html>";
+				char resp1[] = "HTTP/1.1 404 Not Found\nDate: ";
+				char resp2[] = "\nServer: myhttpd/1.0.0 (Ubuntu64)\nContent-Length: 49\nContent-Type: text/html\nConnection: Closed\n\n<html>Sorry dude, couldn't find this file.</html>";
+				char resp[strlen(resp1) + strlen(currDate) + strlen(resp2)];
+				sprintf(resp, "%s%s%s", resp1, currDate, resp2);
 				cout << pathFile << " file does not exist" << endl;
 				socketWrite(sock, resp, strlen(resp));
 				close(sock);
@@ -164,7 +201,7 @@ void childServer(int sock, Stats* st){
 		char resp2[] = "\nServer: myhttpd/1.0.0 (Ubuntu64)\nContent-Length: 49\nContent-Type: text/html\nConnection: Closed\n\n<html>Sorry dude, couldn't find this file.</html>";
 		char resp[strlen(resp1) + strlen(currDate) + strlen(resp2)];
 		sprintf(resp, "%s%s%s", resp1, currDate, resp2);
-		cout << pathFile << "file does not exist"<<endl;
+		cout << pathFile << "file does not exist" << endl;
 		socketWrite(sock, resp, strlen(resp));
 	}
 	delete[] pathFile;
@@ -175,7 +212,8 @@ void childServer(int sock, Stats* st){
 
 void * threadConsumer(void * ptr){
 	int sock;
-	while(1){
+	signal(SIGUSR1, sigChldFinisher);
+	while (!finished){
 		pthread_mutex_lock(&mtx);
 		while (jobQ.countNodes()==0) {
 			pthread_cond_wait(&cond_nonempty, &mtx);
@@ -184,20 +222,19 @@ void * threadConsumer(void * ptr){
 		pthread_mutex_unlock(&mtx);
 		childServer(sock, (Stats*) ptr);
 	}
+	cout << "FINISHED threadConsumer" <<endl;
 	pthread_exit(NULL);
 }
 
 void takeCmds(Stats* st, int p){
 	int sockCmd, accSockCmd;
-	struct sockaddr_in server, client;
-	socklen_t clientlen;
+	struct sockaddr_in server;
 	time_t duration;
 	time_t seconds;
 	time_t minutes;
 	time_t hours;
 
 	struct sockaddr *serverptr=(struct sockaddr *)&server;
-	struct sockaddr *clientptr=(struct sockaddr *)&client;
 
 	//Reap dead children asynchronously
 	signal(SIGCHLD, sigChldHandler);
@@ -216,14 +253,12 @@ void takeCmds(Stats* st, int p){
 	cout << "Listening for connections to port: " << cmdPort << endl;
 	while (1) {
 		//Accept connection
-		if ((accSockCmd = accept(sockCmd, clientptr, &clientlen)) < 0) {perror("accept"); return;}
+		if ((accSockCmd = accept(sockCmd, NULL, NULL)) < 0) {perror("accept"); return;}
 		cout << "Accepted connection" << endl;
 		char msg[MSGSIZE];
 		char cmd[LINESIZE];
 		if(readLine(msg, accSockCmd, cmd) <= 0){
 			cerr << "Problem with cmd line"<<cmd<< endl;
-			//Close socket
-			//close(accSockCmd);
 			continue;
 		}
 		else{
@@ -245,6 +280,7 @@ void takeCmds(Stats* st, int p){
 			}
 			else cerr << "Wrong command taken! Only 'STATS' and 'SHUTDOWN' are available." <<endl;
 		}
+		//Close socket
 		close(accSockCmd);
 	}
 }
@@ -253,14 +289,14 @@ void* threadServ(void* ptr){
 	int servPort = *(int*) ptr; 
 	//Serving port
 	int sockServ, accSockServ;
-	struct sockaddr_in server, client;
-	socklen_t clientlen;
+	struct sockaddr_in server;
 
 	struct sockaddr *serverptr=(struct sockaddr *)&server;
-	struct sockaddr *clientptr=(struct sockaddr *)&client;
 	//struct hostent *rem;
 	//Reap dead children asynchronously
 	signal(SIGCHLD, sigChldHandler);
+	//To finish our loop
+	signal(SIGUSR1, sigChldFinisher);
 	//Create socket
 	if ((sockServ = socket(AF_INET, SOCK_STREAM, 0)) < 0) {perror("socket"); return ptr;}
 	//Internet domain
@@ -273,9 +309,9 @@ void* threadServ(void* ptr){
 	//Listen for connections
 	if (listen(sockServ, 5) < 0) {perror("listen"); return ptr;}
 	cout << "Listening for connections to port: " << servPort << endl;
-	while (1) {
+	while (!finished) {
 		//Accept connection
-		if ((accSockServ = accept(sockServ, clientptr, &clientlen)) < 0) {perror("accept"); return ptr;}
+		if ((accSockServ = accept(sockServ, NULL, NULL)) < 0) {perror("accept serving port"); return ptr;}
 		// Find client's address
 		// if ((rem = gethostbyaddr((char *) &client.sin_addr.s_addr, sizeof(client.sin_addr.s_addr), client.sin_family)) == NULL) {
 		// herror("gethostbyaddr"); exit(1);}
@@ -286,5 +322,7 @@ void* threadServ(void* ptr){
 		pthread_mutex_unlock(&mtx);
 		pthread_cond_signal(&cond_nonempty);
 	}
+	close(sockServ);
+	cout << "FINISHED threadServ" <<endl;
 	return ptr;
 }

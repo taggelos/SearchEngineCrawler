@@ -1,87 +1,50 @@
-#include "fileUtil.h"
-#include <pthread.h>
-#include <unistd.h>
+#include "threadUtil.h"
 
-
+extern pthread_mutex_t mtx;
+extern pthread_mutex_t mtx2;
+extern pthread_cond_t cond_nonempty;
+extern SiteQueue siteQ;
+//Serving port number
+extern int servPort;
+//Name of host or IP
+extern char* hostname;
 
 int main(int argc, char* argv[]){
-	//Name of host or IP
-	char* hostname = NULL;
+	hostname = NULL;
 	//Directory to save the pages we download
 	char* saveDir = NULL;
 	//starting URL
-	char* startingUrl = NULL;	
-	//Serving port number
-	int servPort;
+	char* startingUrl = NULL;
 	//Command port number
 	int cmdPort;
 	//Number of threads
 	int threadsNum;
 	//Check Initial Arguments
-	inputCheck(argc, argv, hostname, saveDir, startingUrl, servPort, cmdPort, threadsNum);
-	/*int	pathsNum = 0;
-	char** paths = readPathFile(inputFile,pathsNum);*/
+	inputCheck(argc, argv, hostname, saveDir, startingUrl, servPort, cmdPort, threadsNum);	
+	//Fill the structure we will send in the Command thread
+	Stats st;
+	//Start counting time
+	st.start = time(NULL);
+	st.servedPages = 0;
+	st.totalBytes = 0;
 
-	int sock, i;
-	char buf[256];
+	pthread_mutex_init(&mtx, 0);
+	pthread_mutex_init(&mtx2, 0);
+	pthread_cond_init(&cond_nonempty, 0);
 
-	struct sockaddr_in server;
-	struct sockaddr *serverptr = (struct sockaddr*)&server;
-	struct hostent *rem;
-	//Create socket
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) perror("socket");
-	//Find server address
-	if ((rem = gethostbyname(hostname)) == NULL) {herror("gethostbyname"); exit(1);}
-	//Internet domain
-	server.sin_family = AF_INET;
-	memcpy(&server.sin_addr, rem->h_addr, rem->h_length);
-	//Use Serving Port
-	server.sin_port = htons((uint16_t)servPort);
-	//Initiate connection
-	if (connect(sock, serverptr, sizeof(server)) < 0) perror("connect");
-	cout << "Connecting to " << hostname << " in port: " << servPort << endl;
+	//Add our first site, the starting Url, in same manner of mutexes to display the right way
+	pthread_mutex_lock(&mtx);
+	siteQ.push(startingUrl);
+	pthread_mutex_unlock(&mtx);
 
-	//Read Command
-	char *cmd;
-	char *mystring = NULL;
-	size_t s = 0;
-	while(getline(&mystring, &s, stdin)!=-1){
-		//Delete \n
-		mystring[strlen(mystring)-1]= '\0';
-		//Handle enter
-		if (!strcmp(mystring,"")) cmd = mystring;
-		else cmd = strtok(mystring, " ");
-		/* /exit */
-		if (!strcmp(cmd,"SHUTDOWN")){
-			break;
-		}
-		/* /search */
-		else if (!strcmp(cmd,"SEARCH")) cout << "SEARCH" << endl;
-		/* /df */
-		else if (!strcmp(cmd,"STATS")) cout << "STATS" << endl;
-		//Wrong Command
-		else commandError();
-		cout <<endl<<"Type next command or '/exit' to terminate"<<endl;		
+	pthread_t* threads = new pthread_t[threadsNum];
+	//Threads for connecting and communicating with server
+	for(int i =0; i<threadsNum; i++){
+		pthread_create(&threads[i], NULL, threadConnect, &st);
 	}
-	if(mystring!=NULL) free(mystring);
-
-	// do {
-	// 	printf("Give input string: ");
-	// 	//Read from stdin
-	// 	fgets(buf, sizeof(buf), stdin);
-	// 	//For every character
-	// 	for(i=0; buf[i] != '\0'; i++) {
-	// 		//Send i-th character
-	// 		if (write(sock, buf + i, 1) < 0)
-	// 			perror("write");
-	// 		//Receive i-th character transformed
-	// 		if (read(sock, buf + i, 1) < 0)	perror("read");   
-	// 	}
-	// 	printf("Received string: %s", buf);
-	// //Finish on "end"
-	// } while (strcmp(buf, "END\n") != 0);
-	//Close socket and exit
-	close(sock);
+	//pthread_create(&threads[threadsNum], NULL, threadCmds, &st);
+	// pthread_create(&threads[threadsNum], NULL, threadServ, &servPort);
+	takeCmds(&st, cmdPort);
 
 	//Free Document
 	//free2D(paths, pathsNum);
