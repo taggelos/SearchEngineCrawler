@@ -8,11 +8,12 @@ extern SiteQueue siteQ;
 extern int servPort;
 //Name of host or IP
 extern char* hostname;
+//Directory to save the pages we download
+extern char* saveDir;
 
 int main(int argc, char* argv[]){
 	hostname = NULL;
-	//Directory to save the pages we download
-	char* saveDir = NULL;
+	saveDir = NULL;
 	//starting URL
 	char* startingUrl = NULL;
 	//Command port number

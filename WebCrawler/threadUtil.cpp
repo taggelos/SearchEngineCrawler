@@ -7,7 +7,7 @@ pthread_mutex_t mtx;
 pthread_mutex_t mtx2;
 pthread_cond_t cond_nonempty;
 SiteQueue siteQ;
-char* rootDir = NULL;
+char* saveDir;
 int servPort;
 char* hostname;
 
@@ -31,9 +31,9 @@ void socketWrite(int sock, char* resp, ssize_t respSize){
 }
 
 //Remove specific word from out char array
-void removeWord(char* str,const char *word){
+void removeWord(char* str,const char* word){
 	int len = (int)strlen(word);
-	while(str=strstr(str,word)) 
+	while((str=strstr(str,word))) 
 	memmove(str, str+len, strlen(str+len)+1);
 }
 
@@ -72,10 +72,31 @@ int socketResponse(int sock){
 	// int mysize = LINESIZE;
 	char* text = new char[size+1];
 	if(read(sock, text, size) < 0 && errno != EINTR) return -1;
+	//cout << text <<"---" << strlen(text)<<endl;
 	removeWord(text," <br> ");
 	removeWord(text,"<!DOCTYPE html><html><body> ");
-	removeWord(text," </body></html");
-	//cout << text <<"---"<<endl;
+	removeWord(text," </body></html>");
+	//cout << text <<"---" << strlen(text)<<endl;
+	char myFirstUrl[] = "startingUrl";
+	//Write in the specified directory the file
+	writeFile(saveDir,myFirstUrl,text);
+	//Find sites
+	char ahref[] = "<a href=\"";
+	char* pch = strstr(text, ahref);
+	char* site;
+	while (pch != NULL){
+		char* closingHref = strstr(pch, "\">");
+		*closingHref = '\0';
+		site = new char[strlen(pch + strlen(ahref))];
+		strcpy(site, pch + strlen(ahref));
+		//cout << site <<endl;
+		//Use mutex to push in our Queue
+		pthread_mutex_lock(&mtx);
+		siteQ.push(site);
+		pthread_mutex_unlock(&mtx);
+		delete[] site;
+		pch = strstr(closingHref + 1, "<a href=\"");
+	}
 	return 0;
 }
 
@@ -100,7 +121,8 @@ int readLine(char* line, int sock){
 	return i;
 }
 
-bool isFile(char *path){
+//Return if it is file or not the current string
+bool isFile(char* path){
 	struct stat path_stat;
 	stat(path, &path_stat);
 	return S_ISREG(path_stat.st_mode);
@@ -115,9 +137,7 @@ char* getParam(char* line){
 }
 
 void childServer(char* site, Stats* st){
-	int sock, i;
-	char buf[256];
-
+	int sock;
 	struct sockaddr_in server;
 	struct sockaddr *serverptr = (struct sockaddr*)&server;
 	struct hostent *rem;
@@ -150,7 +170,7 @@ void childServer(char* site, Stats* st){
 	// st->servedPages++;
 	// st->totalBytes+=strFileSize;
 	// pthread_mutex_unlock(&mtx2);
-	
+
 	//Close socket and exit
 	close(sock);
 	pthread_exit(NULL);
@@ -196,7 +216,7 @@ void takeCmds(Stats* st, int p){
 	//Listen for connections
 	if (listen(sockCmd, 5) < 0) {perror("listen"); return;}
 	cout << "Listening for connections to port: " << cmdPort << endl;
-	while (1) {
+	while (1){
 		//Accept connection
 		if ((accSockCmd = accept(sockCmd, NULL, NULL)) < 0) {perror("accept"); return;}
 		cout << "Accepted connection" << endl;
@@ -226,5 +246,7 @@ void takeCmds(Stats* st, int p){
 			}
 			else cerr << "Wrong command taken! Only 'STATS' and 'SHUTDOWN' are available." <<endl;
 		}
+		//Close socket
+		close(accSockCmd);
 	}
 }

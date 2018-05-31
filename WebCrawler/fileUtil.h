@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstring>
 #include <ctype.h>
+#include <sys/stat.h>
 //Sockets
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -23,6 +24,8 @@ void commandError();
 char** readFile(char* myFile, int &lines, int& fileChars);
 char** readPathFile(char* myFile, int &lines);
 char* readFile(char* myFile);
+void writeFile(char* dirname, char* filename, char* text);
+void createFolder(char* name);
 void inputCheck(int argc, char* argv[], char*& hostname, char*& saveDir, char*& startingUrl, int& servPort, int& cmdPort, int& threadsNum);
 int numRead(char* num);
 bool numberCheck(char *str);

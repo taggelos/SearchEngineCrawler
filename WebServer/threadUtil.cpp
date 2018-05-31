@@ -128,6 +128,7 @@ void childServer(int sock, Stats* st){
 		exit(EXIT_FAILURE); 
 	}
 
+	//If we do not start with GET request
 	if (strncmp(line,"GET",3)) {
 		char resp1[] = "HTTP/1.1 400 Not Right\nDate: ";
 		char resp2[] = "\nServer: myhttpd/1.0.0 (Ubuntu64)\nContent-Length: 49\nContent-Type: text/html\nConnection: Closed\n\n<html>Sorry dude, couldn't find this file.</html>";

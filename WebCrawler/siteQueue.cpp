@@ -25,7 +25,13 @@ void SiteQueue::push(char* site){
 	}
 	//Temp will hold last node
 	Node* temp = head;
-	while (temp->next!=NULL) temp = temp->next;
+	while (temp->next!=NULL) {
+		//Check if duplicate every node
+		if(!strcmp(temp->site,site)) return;
+		temp = temp->next;
+	}
+	//Check last node as well
+	if(!strcmp(temp->site,site)) return;
 	Node * n = new Node(site);
 	temp->next = n;
 	numNodes++;

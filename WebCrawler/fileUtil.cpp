@@ -60,6 +60,32 @@ char** readFile(char* myFile, int& lines, int& fileChars){
 	}
 }
 
+void writeFile(char* dirname, char* filename, char* text){
+	FILE * file;
+	if (dirname[0]== '/') dirname++;
+	char* pathFile = new char[strlen(dirname)+strlen(filename)+6];
+	sprintf(pathFile, "%s/%s.txt", dirname, filename);
+	cout << "My pathFile name -> "<< pathFile <<endl;
+	createFolder(dirname);
+	file = fopen(pathFile, "w");
+	if (file == NULL){
+		cerr << "Error opening file" << endl;
+		exit(2);
+	}
+	else {
+		fprintf(file, "%s\n", text);
+		fclose (file);
+	}
+	delete[] pathFile;
+}
+
+void createFolder(char* name){
+	struct stat st = {};
+	if(stat(name, &st) == -1) {
+		mkdir(name, 0700);
+	}
+}
+
 //Read input File
 char** readPathFile(char* myFile, int &lines){
 	FILE * file;

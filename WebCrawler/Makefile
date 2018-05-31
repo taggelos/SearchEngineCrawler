@@ -12,10 +12,10 @@ $(OUT): $(OBJS)
 	$(CPP) -c $<
 
 run:
-	./$(OUT) -h 127.0.0.1 -p 8080 -c 9091 -t 15 -d ../WebSiteCreator/empty/ /site0/page0_9117.html
+	./$(OUT) -h 127.0.0.1 -p 8080 -c 9091 -t 15 -d /sites /site0/page0_9117.html
 
 val: 
 	valgrind -v --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(OUT) -d $(DATA) 
 
 clean:
-	rm -f $(OBJS) $(OUT)
+	rm -rf $(OBJS) $(OUT) sites
