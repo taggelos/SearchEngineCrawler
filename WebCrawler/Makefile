@@ -4,6 +4,7 @@ OBJS = main.o fileUtil.o threadUtil.o siteQueue.o
 
 $(OUT): $(OBJS)
 	$(CPP) $^ -o $@
+	cd JobExecutor/; $(MAKE)
 
 %.o: %.cpp %.h
 	$(CPP) -c $<
@@ -19,3 +20,4 @@ val:
 
 clean:
 	rm -rf $(OBJS) $(OUT) sites
+	cd JobExecutor/; $(MAKE) clean

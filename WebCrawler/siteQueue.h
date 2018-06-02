@@ -23,6 +23,7 @@ public:
 	void push(char* site);
 	char* pop();
 	int countNodes();
+	bool exists(char* site);
 	~SiteQueue();	
 };
 

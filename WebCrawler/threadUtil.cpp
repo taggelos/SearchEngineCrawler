@@ -7,6 +7,7 @@ pthread_mutex_t mtx;
 pthread_mutex_t mtx2;
 pthread_cond_t cond_nonempty;
 SiteQueue siteQ;
+SiteQueue siteVisitedQ;
 char* saveDir;
 int servPort;
 char* hostname;
@@ -37,7 +38,7 @@ void removeWord(char* str,const char* word){
 	memmove(str, str+len, strlen(str+len)+1);
 }
 
-int socketResponse(int sock){
+int socketResponse(int sock, char* site, Stats* st){
 	char line[LINESIZE];
 	if(readLine(line, sock) <= 0){
 		cerr << "Problem with line "<<line<< endl;
@@ -77,24 +78,31 @@ int socketResponse(int sock){
 	removeWord(text,"<!DOCTYPE html><html><body> ");
 	removeWord(text," </body></html>");
 	//cout << text <<"---" << strlen(text)<<endl;
-	char myFirstUrl[] = "startingUrl";
 	//Write in the specified directory the file
-	writeFile(saveDir,myFirstUrl,text);
+	writeFile(saveDir,site,text);
+	//Hold our statistics if the above operations were successful
+	pthread_mutex_lock(&mtx2);
+	st->servedPages++;
+	st->totalBytes+=size;
+	pthread_mutex_unlock(&mtx2);
 	//Find sites
 	char ahref[] = "<a href=\"";
 	char* pch = strstr(text, ahref);
-	char* site;
+	char* ssite;
 	while (pch != NULL){
 		char* closingHref = strstr(pch, "\">");
 		*closingHref = '\0';
-		site = new char[strlen(pch + strlen(ahref))];
-		strcpy(site, pch + strlen(ahref));
-		//cout << site <<endl;
+		ssite = new char[strlen(pch + strlen(ahref))];
+		strcpy(ssite, pch + strlen(ahref));
+		//cout << ssite <<endl;
 		//Use mutex to push in our Queue
 		pthread_mutex_lock(&mtx);
-		siteQ.push(site);
+		if(!siteQ.exists(ssite) && !siteVisitedQ.exists(ssite)) {
+			cout << "Pushing -> " << ssite <<endl;
+			siteQ.push(ssite);
+		}
 		pthread_mutex_unlock(&mtx);
-		delete[] site;
+		delete[] ssite;
 		pch = strstr(closingHref + 1, "<a href=\"");
 	}
 	return 0;
@@ -109,7 +117,7 @@ int readLine(char* line, int sock){
 		if((n = read(sock, &line[i++], 1)) < 0){
 			if (errno == EINTR) continue;
 			return -1;
-		}else if (n == 1) if (line[i-1] == '\n') break;
+		} else if (n == 1) if (line[i-1] == '\n') break;
 	}
 	//If we exited because of size
 	if(i == LINESIZE){
@@ -136,7 +144,8 @@ char* getParam(char* line){
 	return param;
 }
 
-void childServer(char* site, Stats* st){
+void childServer(char* siteFolder, Stats* st){
+	cout << "AxneSTART " <<siteQ.countNodes() <<endl;
 	int sock;
 	struct sockaddr_in server;
 	struct sockaddr *serverptr = (struct sockaddr*)&server;
@@ -153,8 +162,8 @@ void childServer(char* site, Stats* st){
 	//Initiate connection
 	if (connect(sock, serverptr, sizeof(server)) < 0) perror("connect");
 	cout << "Connecting to " << hostname << " in port: " << servPort << endl;
-	char getReqt[3 + strlen(site) + 8];
-	sprintf(getReqt, "GET %s HTTP/1.1\n", site);
+	char getReqt[3 + strlen(siteFolder) + 8];
+	sprintf(getReqt, "GET %s HTTP/1.1\n", siteFolder);
 	socketWrite(sock, getReqt, strlen(getReqt));
 	// char msg[MSGSIZE];
 	// int n=0;
@@ -165,18 +174,17 @@ void childServer(char* site, Stats* st){
 	// 	}
 	// }
 	//char msg[MSGSIZE];
-	socketResponse(sock);
-	// pthread_mutex_lock(&mtx2);
-	// st->servedPages++;
-	// st->totalBytes+=strFileSize;
-	// pthread_mutex_unlock(&mtx2);
+	//Remove folder name from site
+	char* site = strrchr(siteFolder, '/');
+	site++;
+	socketResponse(sock, site, st);
+	cout << "Axne " <<siteQ.countNodes() <<endl;
 
 	//Close socket and exit
 	close(sock);
-	pthread_exit(NULL);
 }
 
-void * threadConnect(void * ptr){
+void* threadConnect(void* ptr){
 	char* site = NULL;
 	while(1){
 		pthread_mutex_lock(&mtx);
@@ -184,10 +192,12 @@ void * threadConnect(void * ptr){
 			pthread_cond_wait(&cond_nonempty, &mtx);
 		}
 		site=siteQ.pop();
+		if(site!=NULL) cout <<"Popping -> " << site  <<endl; else cout << "Popping LAST element"<<endl;
+		siteVisitedQ.push(site);
 		pthread_mutex_unlock(&mtx);
-		childServer(site, (Stats*) ptr);
-		site = NULL;
+		if(site!=NULL) childServer(site, (Stats*) ptr);
 	}
+	cout << "threadConnect finished!" <<endl;
 	pthread_exit(NULL);
 }
 
@@ -229,6 +239,10 @@ void takeCmds(Stats* st, int p){
 		}
 		else{
 			cout << cmdPort <<" port curr cmd line-> "<< cmd << endl;
+			//Temporary string of cmd to handle
+			char* cmdTemp = new char[strlen(cmd)+1];
+			strcpy(cmdTemp,cmd);
+			char* token = strtok(cmdTemp," \r\n");
 			if(!strcmp(cmd,"SHUTDOWN\r\n")){
 				cout << "SHUTDOWN" <<endl;
 				close(accSockCmd);
@@ -244,7 +258,17 @@ void takeCmds(Stats* st, int p){
 				hours = minutes / 60;
 				cout << "Server up for "<< hours << ":" << minutes << "." <<seconds << " served " << st->servedPages <<" pages, " << st->totalBytes << " bytes"<<endl;
 			}
+			else if(token!=NULL && !strcmp(token,"SEARCH")){
+				char * q = strtok(NULL, " \r\n");
+				while (q!=NULL) {
+					cout << q << " <-token"<<endl;
+					q = strtok(NULL, " \r\n");
+				}
+				cout << cmdPort <<"  token -> "<< token << "  cmd->"<< cmd << endl;
+				cout << "AXNE SEARCHING "<<endl;
+			}
 			else cerr << "Wrong command taken! Only 'STATS' and 'SHUTDOWN' are available." <<endl;
+			delete[] cmdTemp;
 		}
 		//Close socket
 		close(accSockCmd);

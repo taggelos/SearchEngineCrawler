@@ -35,7 +35,7 @@ struct Stats{
 
 void sigChldHandler(int sig);
 void socketWrite(int sock, char* resp, ssize_t respSize);
-int socketResponse(int sock);
+int socketResponse(int sock, char* site, Stats* st);
 int readLine(char* line, int sock);
 bool isFile(char *path);
 char* getParam(char* line);

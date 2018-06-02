@@ -52,6 +52,15 @@ int SiteQueue::countNodes(){
 	return numNodes;
 }
 
+bool SiteQueue::exists(char* site){
+	Node* temp = head;
+	while(temp!= NULL){
+		if(!strcmp(temp->site,site)) return true;
+		temp = temp->next;
+	}
+	return false;
+}
+
 //Destructor
 SiteQueue::~SiteQueue(){
 	Node* temp = NULL;
