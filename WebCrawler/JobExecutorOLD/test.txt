@@ -1,3 +1,0 @@
-/home/user/JobExecutor/dirA
-dirB
-../dirC
