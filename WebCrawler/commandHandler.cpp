@@ -72,7 +72,7 @@ void takeCmds(Stats* st, int p){
 					q = strtok(NULL, " \r\n");
 				}
 				if(siteQ.countNodes()!=0) cout <<"Processing was not finished. Try again!"<<endl;
-				else main2(queries);
+				//else main2(queries);
 				cout << "AXNE SEARCHING "<<endl;
 			}
 			else cerr << "Wrong command taken! Only 'STATS' and 'SHUTDOWN' are available." <<endl;
@@ -83,6 +83,7 @@ void takeCmds(Stats* st, int p){
 	}
 }
 
+/*
 //Execute search commands
 int main2(WordList queries){	
 	//Use by default 10 as number of workers (piazza)
@@ -118,4 +119,4 @@ int main2(WordList queries){
 	delete[] pids;
 	cout << "DOES IT PRINT IT>?"<<endl;
 	return 1;
-}
+}*/

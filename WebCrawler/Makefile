@@ -1,6 +1,6 @@
-CPP = g++ -Wall -Wextra -Wconversion -g -lm -pthread -IJobExecutor
+CPP = g++ -Wall -Wextra -Wconversion -g -lm -pthread -IJobExecutorModified
 OUT = mycrawler
-OBJS = main.o threadUtil.o commandHandler.o siteQueue.o JobExecutor/fileUtil.o JobExecutor/pipeUtil.o JobExecutor/trieUtil.o JobExecutor/wordList.o JobExecutor/postingList.o JobExecutor/pathList.o JobExecutor/heap.o JobExecutor/trie.o JobExecutor/jobExecutorUtil.o JobExecutor/workerUtil.o
+OBJS = main.o threadUtil.o commandHandler.o siteQueue.o JobExecutorModified/fileUtil.o JobExecutorModified/pipeUtil.o JobExecutorModified/trieUtil.o JobExecutorModified/wordList.o JobExecutorModified/postingList.o JobExecutorModified/pathList.o JobExecutorModified/heap.o JobExecutorModified/trie.o JobExecutorModified/jobExecutorUtil.o JobExecutorModified/workerUtil.o
 
 $(OUT): $(OBJS)
 	$(CPP) main.o commandHandler.o threadUtil.o siteQueue.o fileUtil.o pipeUtil.o trieUtil.o wordList.o postingList.o pathList.o heap.o trie.o jobExecutorUtil.o workerUtil.o -o $@
