@@ -14,19 +14,26 @@
 #include <fcntl.h>
 #include <ctime>
 
+//Sockets
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h> //internet sockets
+#include <unistd.h>
+#include <netdb.h> //gethostbyaddr
+
 #include "trie.h"
 #include "postingList.h"
 #include "pipeUtil.h"
 #include "wordList.h"
 using namespace std;
 
-#ifndef FUNCTIONS_H
-#define FUNCTIONS_H
+#ifndef FILEUTIL_H
+#define FILEUTIL_H
 
+extern WordList folderNames;
 void paramError(char * programName ,const char * reason);
 void commandError();
 char** readFile(char* myFile, int &lines, int& fileChars);
-char** readPathFile(char* myFile, int &lines);
 void inputCheck(int argc, char* argv[], char*& hostname, char*& saveDir, char*& startingUrl, int& servPort, int& cmdPort, int& threadsNum);
 void createLog();
 void free2D(char ** paths, const int& lineNum);

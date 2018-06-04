@@ -16,11 +16,11 @@ struct Documents{
 	char** paths;
 	int size;
 };
-void jobExecutor(char* inputFile, char** paths, int pathsNum, int workersNum);
+void jobExecutor(char** paths, int pathsNum, int workersNum, WordList queries);
 bool searchInputCheck(WordList& wlist);
 char* mcountInputCheck();
 void wcInputCheck();
-void jSearch(int* fd, int* fdReceive, int workers);
+void jSearch(int* fd, int* fdReceive, int workers, WordList queries);
 void jMinMaxCount(int* fd, int* fdReceive, int workers, const char* cmd);
 void jWc(int* fd, int* fdSend, int workers);
 Documents* loadBalancer(char** paths, int pathsNum, int workers);

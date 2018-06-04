@@ -33,19 +33,20 @@ void worker(char* w2j, char* j2w){
 	int totalChars=0;
 	wInsertTrie(filesNum, mydirFiles, nwordsFiles, documentsFiles, lineNumFiles, trie, totalChars);
 
-	//Loop through commands
-	char cmd='x';
-	while(cmd !='e'){
-		if (read(fdsJ2w, &cmd, sizeof(char)) < 0){
-			perror("Problem in reading the number of paths");
-			exit(4);
-		}
-		if (cmd == 's') wSearch(fdsJ2w, fdsW2j, trie, documentsFiles, mydirFiles, filesNum);
-		else if (cmd == 'i') wMinMaxcount(fdsJ2w, fdsW2j, trie, "mincount");
-		else if (cmd == 'a') wMinMaxcount(fdsJ2w, fdsW2j, trie, "maxcount");
-		else if (cmd == 'w') wWc(fdsW2j, filesNum, nwordsFiles, lineNumFiles, totalChars);
-	}
-	cout << " Process ended with " << cmd << endl;
+	// //Loop through commands
+	// char cmd='x';
+	// while(cmd !='e'){
+	// 	if (read(fdsJ2w, &cmd, sizeof(char)) < 0){
+	// 		perror("Problem in reading the number of paths");
+	// 		exit(4);
+	// 	}
+	// 	if (cmd == 's') wSearch(fdsJ2w, fdsW2j, trie, documentsFiles, mydirFiles, filesNum);
+	// 	else if (cmd == 'i') wMinMaxcount(fdsJ2w, fdsW2j, trie, "mincount");
+	// 	else if (cmd == 'a') wMinMaxcount(fdsJ2w, fdsW2j, trie, "maxcount");
+	// 	else if (cmd == 'w') wWc(fdsW2j, filesNum, nwordsFiles, lineNumFiles, totalChars);
+	// }
+	// cout << " Process ended with " << cmd << endl;
+	wSearch(fdsJ2w, fdsW2j, trie, documentsFiles, mydirFiles, filesNum);
 	//Free all the structures used
 	freeAll(mydirFiles, paths, pathsNum, filesNum, nwordsFiles, documentsFiles, lineNumFiles, trie);
 	exit(0);
@@ -59,9 +60,9 @@ void wSearch(int fd, int fdSend, Trie* trie, char*** documentsFiles, char** mydi
 	//Number of queries
 	int numWords;
 	char** words = readArray(fd,numWords);
-	double deadline = (double) atoi(words[0]);
-	//Without the -d flag and its value, iterate through the words
-	for (int i=2; i<numWords; i++){
+	double deadline = 10000;
+	//iterate through the words and not Without the -d flag and its value
+	for (int i=0; i<numWords; i++){
 		PathList* pathList = trie->search(words[i]);
 		if (pathList!=NULL){
 			int numPaths = pathList->countPaths();
@@ -262,7 +263,7 @@ void freeAll(char ** mydirFiles, char** paths, int pathsNum, int filesNum, int**
 		//Free Document
 		free2D(documentsFiles[i],lineNumFiles[i]);
 	}
-	//Delete trie
+	// //Delete trie
 	delete trie;
 	//Delete lineNums
 	delete[] lineNumFiles;

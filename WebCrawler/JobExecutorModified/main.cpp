@@ -2,7 +2,7 @@
 #include "jobExecutorUtil.h"
 
 int main(int argc, char* argv[]){
-	char* inputFile = NULL;	
+	/*char* inputFile = NULL;	
 	//Use by default 10 as number of workers (piazza)
 	int workersNum = 10;
 	//Check Initial Arguments
@@ -34,6 +34,6 @@ int main(int argc, char* argv[]){
 	freeFds(w2j, j2w, workersNum);
 	//Free Document
 	free2D(paths, pathsNum);
-	delete[] pids;
+	delete[] pids;*/
 	exit(0);
 }
