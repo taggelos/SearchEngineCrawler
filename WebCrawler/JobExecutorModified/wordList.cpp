@@ -42,6 +42,16 @@ void WordList::add(char* word){
 	numNodes++;
 }
 
+//Insertion of input taken into the List
+bool WordList::contains(char* word){
+	Node* temp = head;
+	while(temp!= NULL){
+		if (!strcmp(word,temp->word)) return true;
+		temp = temp->next;
+	}
+	return false;
+}
+
 bool WordList::searchInputCheck(){
 	//Penultimate character must be the deadline flag
 	Node * hnext = head->next;

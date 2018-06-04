@@ -116,6 +116,5 @@ int main2(WordList queries){
 	//Free Document
 	free2D(paths, pathsNum);
 	delete[] pids;
-	cout << "DOES IT PRINT IT>?"<<endl;
 	return 1;
 }

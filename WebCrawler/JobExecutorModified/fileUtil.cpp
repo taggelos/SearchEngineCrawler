@@ -117,7 +117,7 @@ void writeFile(char* dirname, char* filename, char* text){
 	sprintf(fullPathFile, "%s/%s", final, filename);
 
 	cout << "My pathFile name -> "<< pathFile <<endl;
-	folderNames.add(final);
+	if(!folderNames.contains(final)) folderNames.add(final);
 	createFolder(dirname);
 	createFolder(final);
 

@@ -26,6 +26,7 @@ class WordList {
 public:
 	WordList();
 	void add(char* word);
+	bool contains(char* word);
 	bool searchInputCheck();
 	int countWords();
 	char** returnAsArray();
