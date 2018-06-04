@@ -41,6 +41,5 @@ bool isFile(char *path);
 char* getParam(char* line);
 void childServer(char* site, Stats* st);
 void * threadConnect(void * ptr);
-void takeCmds(Stats* st,int cmdPort);
 
 #endif

@@ -1,10 +1,9 @@
-CPP = g++ -Wall -Wextra -Wconversion -g -lm -pthread
+CPP = g++ -Wall -Wextra -Wconversion -g -lm -pthread -IJobExecutor
 OUT = mycrawler
-OBJS = main.o fileUtil.o threadUtil.o siteQueue.o
+OBJS = main.o threadUtil.o commandHandler.o siteQueue.o JobExecutor/fileUtil.o JobExecutor/pipeUtil.o JobExecutor/trieUtil.o JobExecutor/wordList.o JobExecutor/postingList.o JobExecutor/pathList.o JobExecutor/heap.o JobExecutor/trie.o JobExecutor/jobExecutorUtil.o JobExecutor/workerUtil.o
 
 $(OUT): $(OBJS)
-	$(CPP) $^ -o $@
-	cd JobExecutor/; $(MAKE)
+	$(CPP) main.o commandHandler.o threadUtil.o siteQueue.o fileUtil.o pipeUtil.o trieUtil.o wordList.o postingList.o pathList.o heap.o trie.o jobExecutorUtil.o workerUtil.o -o $@
 
 %.o: %.cpp %.h
 	$(CPP) -c $<
@@ -19,5 +18,6 @@ val:
 	valgrind -v --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(OUT) -d $(DATA) 
 
 clean:
-	rm -rf $(OBJS) $(OUT) sites
-	cd JobExecutor/; $(MAKE) clean
+	rm -rf *.o sites
+	rm -f $(OBJS) $(OUT) .j2w* .w2j*
+	rm -rf log
