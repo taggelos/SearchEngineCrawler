@@ -115,8 +115,7 @@ void writeFile(char* dirname, char* filename, char* text){
 	//sites/pageX/pageX_ZZZ.html
 	char fullPathFile [strlen(final)+strlen(filename)+2];
 	sprintf(fullPathFile, "%s/%s", final, filename);
-
-	cout << "My pathFile name -> "<< pathFile <<endl;
+	
 	if(!folderNames.contains(final)) folderNames.add(final);
 	createFolder(dirname);
 	createFolder(final);

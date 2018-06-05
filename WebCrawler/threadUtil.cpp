@@ -145,7 +145,6 @@ char* getParam(char* line){
 }
 
 void childServer(char* siteFolder, Stats* st){
-	cout << "AxneSTART " <<siteQ.countNodes() <<endl;
 	int sock;
 	struct sockaddr_in server;
 	struct sockaddr *serverptr = (struct sockaddr*)&server;
@@ -179,7 +178,7 @@ void childServer(char* siteFolder, Stats* st){
 	site++;
 	//Add the name of the file to our wordlist
 	socketResponse(sock, site, st);
-	cout << "NUmber of elements in siteQ: " <<siteQ.countNodes() <<endl;
+	cout << "Number of elements in siteQ: " <<siteQ.countNodes() <<endl;
 
 	//Close socket and exit
 	close(sock);

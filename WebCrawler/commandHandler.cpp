@@ -75,7 +75,6 @@ void takeCmds(Stats* st, int p){
 				int qsNum = queries.countWords();
 				if(siteQ.countNodes()!=0) cout <<"Processing was not finished. Try again!"<<endl;
 				else main2(qs,qsNum);
-				cout << "AXNE SEARCHING "<<endl;
 			}
 			else cerr << "Wrong command taken! Only 'STATS' and 'SHUTDOWN' are available." <<endl;
 			delete[] cmdTemp;

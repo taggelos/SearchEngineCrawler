@@ -67,7 +67,6 @@ void jobExecutor(char** paths, int pathsNum, int workersNum, char** qs, int qsNu
 	delete[] fdsW2j;
 	for(int i=0; i<workersNum; i++)	delete[] documents[i].paths;
 	delete[] documents;
-	cout << "DOES IT PRINT IT>2?"<<endl;
 }
 
 //Divide paths to workers
