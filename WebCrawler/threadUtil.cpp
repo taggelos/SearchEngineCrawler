@@ -179,7 +179,7 @@ void childServer(char* siteFolder, Stats* st){
 	site++;
 	//Add the name of the file to our wordlist
 	socketResponse(sock, site, st);
-	cout << "Axne " <<siteQ.countNodes() <<endl;
+	cout << "NUmber of elements in siteQ: " <<siteQ.countNodes() <<endl;
 
 	//Close socket and exit
 	close(sock);

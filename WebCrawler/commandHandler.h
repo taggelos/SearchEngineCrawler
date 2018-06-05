@@ -6,5 +6,5 @@
 #ifndef CMDS_H
 #define CMDS_H
 void takeCmds(Stats* st,int cmdPort);
-int main2(WordList q);
+int main2(char** qs, int qsNum);
 #endif

@@ -71,8 +71,10 @@ void takeCmds(Stats* st, int p){
 					queries.add(q);
 					q = strtok(NULL, " \r\n");
 				}
+				char** qs = queries.returnAsArray();
+				int qsNum = queries.countWords();
 				if(siteQ.countNodes()!=0) cout <<"Processing was not finished. Try again!"<<endl;
-				else main2(queries);
+				else main2(qs,qsNum);
 				cout << "AXNE SEARCHING "<<endl;
 			}
 			else cerr << "Wrong command taken! Only 'STATS' and 'SHUTDOWN' are available." <<endl;
@@ -84,7 +86,7 @@ void takeCmds(Stats* st, int p){
 }
 
 //Execute search commands
-int main2(WordList queries){	
+int main2(char** qs, int qsNum){	
 	//Use by default 10 as number of workers (piazza)
 	int workersNum = 10;
 	char** paths = folderNames.returnAsArray();
@@ -109,8 +111,7 @@ int main2(WordList queries){
 		}
 	}
 	//start JobExecutor
-	jobExecutor(paths, pathsNum, workersNum, queries);
-	cout << "DOES IT PRINT IT>? 1"<<endl;
+	jobExecutor(paths, pathsNum, workersNum,  qs, qsNum);
 	//Delete the arrays of file descriptors
 	freeFds(w2j, j2w, workersNum);
 	//Free Document

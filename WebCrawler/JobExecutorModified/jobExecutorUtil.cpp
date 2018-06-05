@@ -9,7 +9,7 @@ char** j2w;
 int* fdsJ2w;
 int* fdsW2j;
 
-void jobExecutor(char** paths, int pathsNum, int workersNum, WordList queries){
+void jobExecutor(char** paths, int pathsNum, int workersNum, char** qs, int qsNum){
 	cout << "PARENT-- " <<endl;
 	//parent process	
 	documents = loadBalancer(paths, pathsNum, workersNum);
@@ -62,22 +62,12 @@ void jobExecutor(char** paths, int pathsNum, int workersNum, WordList queries){
 	if(mystring!=NULL) free(mystring);*/
 
 	//Always execute search command
-	jSearch(fdsJ2w, fdsW2j, workersNum, queries);
-	cout << "DOES IT PRINT IT>2?"<<endl;
+	jSearch(fdsJ2w, fdsW2j, workersNum, qs, qsNum);
 	delete[] fdsJ2w;
-	cout << "DOES IT PRINT IT>2....1?"<<endl;
 	delete[] fdsW2j;
-	cout << "DOES IT PRINT IT>2....2?"<<endl;
 	for(int i=0; i<workersNum; i++)	delete[] documents[i].paths;
-	cout << "DOES IT PRINT IT>2....3?"<<endl;
 	delete[] documents;
-	cout << "DOES IT PRINT IT>2....4?"<<endl;
-	sleep(1);
-	cout << "DOES IT PRINT IT>2....5?"<<endl;
-	sleep(1);
-	cout << "DOES IT PRINT IT>2....6?"<<endl;
-	sleep(5);
-	cout << "DOES IT PRINT IT>2....7?"<<endl;
+	cout << "DOES IT PRINT IT>2?"<<endl;
 }
 
 //Divide paths to workers
@@ -103,11 +93,8 @@ Documents* loadBalancer(char** paths, int pathsNum, int workers){
 	return documents;
 }
 
-void jSearch(int* fd, int* fdReceive, int workers, WordList queries){
-	//Number of queries
-	int numWords = queries.countWords();
-	//Array of queries
-	char** words = queries.returnAsArray();
+//Number of queries -> numWords and Array of queries -> words
+void jSearch(int* fd, int* fdReceive, int workers, char** words, int numWords){
 	//Count how many workers finished correctly
 	int finishedWorkers=0;
 	//For every worker

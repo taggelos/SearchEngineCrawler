@@ -108,7 +108,7 @@ void wSearch(int fd, int fdSend, Trie* trie, char*** documentsFiles, char** mydi
 	}
 	else {
 		cout << "TimeOut" <<endl;
-		char timeOut[]  = "TimeOut";		
+		char timeOut[]  = "TimeOut";
 		writeString(fdSend,timeOut);
 	}
 	free2D(words,numWords);
