@@ -23,43 +23,6 @@ void commandError(){
 	cerr << "############################################################################"<<endl;
 }
 
-//Read input File
-char** readFile(char* myFile, int& lines, int& fileChars){
-	FILE * file;
-	lines = 0;
-
-	file = fopen (myFile, "r");
-	if (file == NULL){
-		cerr << "Error opening file" << endl;
-		exit(2);
-	}
-	else {
-		while(!feof(file)) if(fgetc(file) == '\n') lines++;
-		char ** documents = new char*[lines];
-		rewind(file);
-		//Lines
-		char * mystring = NULL;
-		size_t n = 0;
-		for (int i=0; i<lines;i++){
-			ssize_t size = getline(&mystring, &n, file);
-			fileChars+=(int)size;
-			if(mystring[size-1]=='\n') mystring[size-1]='\0';
-			char *token = strtok(mystring," \t");
-			//For first character of first line we check without using atoi
-			if (token==NULL || !numberCheck(token) || atoi(mystring)!=i ) {
-				cerr <<"Invalid number close in line "<< i << " of file" <<endl;
-				exit(4);
-			}
-			documents[i] = new char[size+1-strlen(token)];
-			strcpy(documents[i],mystring+strlen(token)+1);
-			//cout << "  " << documents[i] << "  "<< endl;
-		}
-		if(mystring!=NULL) free(mystring);
-		fclose (file);
-		return documents;
-	}
-}
-
 //Read input file as a single string
 char* readFile(char* myFile){
 	FILE * file;
@@ -80,35 +43,6 @@ char* readFile(char* myFile){
 		return strFile;
 	}
 }
-
-//Read input File
-char** readPathFile(char* myFile, int &lines){
-	FILE * file;
-	lines = 0;
-	file = fopen (myFile, "r");
-	if (file == NULL){
-		cerr << "Error opening file" << endl;
-		exit(2);
-	}
-	else {
-		while(!feof(file)) if(fgetc(file) == '\n') lines++;
-		char ** documents = new char*[lines];
-		rewind(file);
-		//Lines
-		char * mystring = NULL;
-		size_t n = 0;
-		for (int i=0; i<lines;i++){
-			ssize_t size = getline(&mystring, &n, file);
-			if(mystring[size-1]=='\n') mystring[size-1]='\0';
-			documents[i] = new char[size+1];
-			strcpy(documents[i],mystring);
-		}
-		if(mystring!=NULL) free(mystring);
-		fclose (file);
-		return documents;
-	}
-}
-
 
 //Check string if it is number
 bool numberCheck(char *str){

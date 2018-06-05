@@ -31,7 +31,7 @@ int main(int argc, char* argv[]){
 		pthread_create(&threads[i], NULL, threadConsumer, &st);
 	}
 	//pthread_create(&threads[threadsNum], NULL, threadCmds, &st);
-	pthread_create(&threads[threadsNum], NULL, threadServ, &servPort);
+	pthread_create(&threads[threadsNum-1], NULL, threadServ, &servPort);
 	takeCmds(&st, cmdPort);
 	//After we exited the above Function (SHUTDOWN received)
 	// for(int i =0; i<threadsNum; i++){

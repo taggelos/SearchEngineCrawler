@@ -67,28 +67,6 @@ int readLine(char* msg, int sock, char* line){
 	return i;
 }
 
-//ReadLine Character by Character
-int readLine(char* line, int sock){
-	int i=0;
-	ssize_t n;
-	while (i < LINESIZE){
-		//Read Character by Character
-		if((n = read(sock, &line, 1)) < 0){
-			if (errno == EINTR) continue;
-			return -1;
-		}else if (n == 1) if (line[i++] == '\n') break;
-	}
-	//If we exited because of size
-	if(i == LINESIZE){
-		cerr << "Line too large: "<< LINESIZE <<endl;
-		return -1;
-	}
-	//Use '\0' as last character to designate our string
-	line[i] = '\0';
-	return i;
-}
-
-
 bool isFile(char *path){
 	struct stat path_stat;
 	stat(path, &path_stat);
